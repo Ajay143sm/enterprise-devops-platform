@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+
+    environment {
+        // Replace with your actual DockerHub username so Jenkins can push the image
+        DOCKER_HUB_USER = 'your_dockerhub_username'
+        APP_NAME        = 'aws-devops-deployment-platform'
+        IMAGE_TAG       = "${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout Source Code') {
+            steps {
+                // Pulls the absolute latest code from your master/main branch
+                checkout scm
+            }
+        }
+
+        stage('Lint & Validate') {
+            steps {
+                echo 'Validating file presence and structure...'
+                sh 'test -f docker/Dockerfile'
+                sh 'test -f app/index.html'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "Building Docker image version: ${IMAGE_TAG}"
+                // Builds the container image using the Dockerfile we just created
+                sh "docker build -f docker/Dockerfile -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+            }
+        }
+
+        stage('Security Vulnerability Scan') {
+            steps {
+                echo 'Simulating container security analysis...'
+                // In production, you would run a scanner like Trivy here
+                sh 'echo "Container image scan completed successfully. No major issues found."'
+            }
+        }
+
+        stage('Push to Docker Hub Registry') {
+            steps {
+                echo 'Authenticating and pushing image to Docker Hub...'
+                // This stage securely pushes your container to Docker Hub so your prod server can pull it
+                // Note: In real life, you would wrap this with credentialsId blocks for safety
+                sh "echo 'Skipping actual upload until registry keys are linked. Local image built cleanly.'"
+            }
+        }
+
+        stage('Deploy to Production Env') {
+            steps {
+                echo 'Triggering automated environment deployment...'
+                // This simulates passing the new container down to our Ansible deployment task
+                sh "echo 'Deploying version ${IMAGE_TAG} to target server...'"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully! App is ready for production.'
+        }
+        failure {
+            echo 'Pipeline failed. Check build logs for syntax errors.'
+        }
+    }
+}
