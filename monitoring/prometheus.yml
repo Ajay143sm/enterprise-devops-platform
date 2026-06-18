@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s # How often to scrape metrics from targets
+  evaluation_interval: 15s
+
+# Alertmanager configuration (Disaster Recovery / Alerting)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - localhost:9093
+
+rule_files:
+  # - "alert_rules.yml"
+
+# Scrape configurations targeting our infrastructure nodes
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "production-server"
+    static_configs:
+      - targets: ["prod_server_ip:9100"] # Node Exporter runs on port 9100
